@@ -106,6 +106,14 @@
       item.innerHTML = `<span class="legend-swatch" style="background:${cat.color}"></span>${cat.label}`;
       els.legendPanel.appendChild(item);
     }
+    const markerRequired = document.createElement("div");
+    markerRequired.className = "legend-item";
+    markerRequired.innerHTML = `<span class="req-marker required">*</span> Required course`;
+    els.legendPanel.appendChild(markerRequired);
+    const markerElective = document.createElement("div");
+    markerElective.className = "legend-item";
+    markerElective.innerHTML = `<span class="req-marker elective">*</span> Counts toward elective requirement`;
+    els.legendPanel.appendChild(markerElective);
   }
 
   function setLegendOpen(open) {
@@ -336,6 +344,16 @@
 
   const ALL_QUARTERS = ["Au", "Wi", "Sp", "Su"];
 
+  function requirementMarker(course) {
+    if (course.category === "required-ee") {
+      return `<span class="req-marker required" title="Required course">*</span>`;
+    }
+    if (course.category === "elective-ee") {
+      return `<span class="req-marker elective" title="Counts toward the EE elective requirement">*</span>`;
+    }
+    return "";
+  }
+
   function quartersHtml(course) {
     const offered = course.offered || [];
     if (!offered.length) {
@@ -370,7 +388,7 @@
     const info = document.createElement("div");
     info.className = "info";
     info.innerHTML = `
-      <div class="code">${course.code}</div>
+      <div class="code">${course.code}${requirementMarker(course)}</div>
       <div class="title">${course.title}</div>
       <div class="credits">${course.credits} cr${course.prereqs.length ? ` · needs ${course.prereqs.join(", ")}` : ""}</div>
       ${quartersHtml(course)}
