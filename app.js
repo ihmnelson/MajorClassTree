@@ -2,7 +2,7 @@
   const els = {
     majorSelect: document.getElementById("major-select"),
     majorLabel: document.getElementById("major-label"),
-    trackButtons: document.getElementById("track-buttons"),
+    trackSelect: document.getElementById("track-select"),
     tree: document.getElementById("tree"),
     treeWrap: document.getElementById("tree-wrap"),
     edges: document.getElementById("edges"),
@@ -122,31 +122,25 @@
     els.legendToggle.textContent = open ? "✕" : "?";
   }
 
-  function renderTrackButtons(data) {
-    els.trackButtons.innerHTML = "";
-    const allBtn = document.createElement("button");
-    allBtn.className = "track-btn active";
-    allBtn.textContent = "All courses";
-    allBtn.onclick = () => setTrack(null);
-    els.trackButtons.appendChild(allBtn);
+  function renderTrackSelect(data) {
+    els.trackSelect.innerHTML = "";
+    const allOpt = document.createElement("option");
+    allOpt.value = "";
+    allOpt.textContent = "All courses";
+    els.trackSelect.appendChild(allOpt);
 
     for (const track of data.tracks || []) {
-      const btn = document.createElement("button");
-      btn.className = "track-btn";
-      btn.textContent = track.label;
-      btn.onclick = () => setTrack(track.id);
-      btn.dataset.trackId = track.id;
-      els.trackButtons.appendChild(btn);
+      const opt = document.createElement("option");
+      opt.value = track.id;
+      opt.textContent = track.label;
+      els.trackSelect.appendChild(opt);
     }
   }
 
   function setTrack(trackId) {
     activeTrack = trackId;
     selectedCode = null;
-    for (const btn of els.trackButtons.querySelectorAll(".track-btn")) {
-      const isAll = !btn.dataset.trackId;
-      btn.classList.toggle("active", isAll ? trackId === null : btn.dataset.trackId === trackId);
-    }
+    els.trackSelect.value = trackId || "";
     updateVisualState();
   }
 
@@ -154,9 +148,7 @@
     selectedCode = selectedCode === code ? null : code;
     if (selectedCode) {
       activeTrack = null;
-      for (const btn of els.trackButtons.querySelectorAll(".track-btn")) {
-        btn.classList.toggle("active", !btn.dataset.trackId);
-      }
+      els.trackSelect.value = "";
     }
     updateVisualState();
   }
@@ -274,7 +266,7 @@
 
     els.majorLabel.textContent = `— ${data.school}, ${data.major}`;
     renderLegend(data);
-    renderTrackButtons(data);
+    renderTrackSelect(data);
 
     const byCode = new Map(data.courses.map((c) => [c.code, c]));
     currentByCode = byCode;
@@ -422,6 +414,8 @@
 
   async function init() {
     window.addEventListener("resize", () => requestAnimationFrame(updateVisualState));
+
+    els.trackSelect.addEventListener("change", () => setTrack(els.trackSelect.value || null));
 
     els.selectionClear.addEventListener("click", () => {
       selectedCode = null;

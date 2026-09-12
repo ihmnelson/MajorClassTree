@@ -64,7 +64,7 @@ header h1 span {
   flex: 1;
 }
 
-select, button.track-btn {
+select {
   background: var(--panel-2);
   color: var(--text);
   border: 1px solid var(--border);
@@ -72,12 +72,6 @@ select, button.track-btn {
   padding: 6px 10px;
   font-size: 13px;
   cursor: pointer;
-}
-
-button.track-btn.active {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 15%, var(--panel-2));
 }
 
 .progress {
