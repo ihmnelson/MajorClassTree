@@ -239,7 +239,26 @@
     requestAnimationFrame(() => drawEdges(byCode));
     window.addEventListener("resize", () => requestAnimationFrame(() => drawEdges(byCode)), { once: false });
 
-    els.footer.innerHTML = `Source: ${data.source}. ${data.sourceNote} Checked-off state is saved only in this browser (localStorage) — nothing is sent anywhere.`;
+    const offeredNote = data.offeredMeta
+      ? ` Quarter-offered badges: ${data.offeredMeta.mathSource} ${data.offeredMeta.eeSource} ${data.offeredMeta.note}`
+      : "";
+    els.footer.innerHTML = `Source: ${data.source}. ${data.sourceNote}${offeredNote} Checked-off state is saved only in this browser (localStorage) — nothing is sent anywhere.`;
+  }
+
+  const ALL_QUARTERS = ["Au", "Wi", "Sp", "Su"];
+
+  function quartersHtml(course) {
+    const offered = course.offered || [];
+    if (!offered.length) {
+      const note = course.offeredNote || "not seen in recently sampled terms";
+      return `<div class="quarters no-data" title="${note}">no recent schedule data</div>`;
+    }
+    const pills = ALL_QUARTERS.map((q) => {
+      const on = offered.includes(q);
+      return `<span class="quarter${on ? " active" : ""}">${q}</span>`;
+    }).join("");
+    const title = course.offeredNote ? ` title="${course.offeredNote}"` : "";
+    return `<div class="quarters"${title}>${pills}</div>`;
   }
 
   function buildNode(course, byCode, data) {
@@ -265,6 +284,7 @@
       <div class="code">${course.code}</div>
       <div class="title">${course.title}</div>
       <div class="credits">${course.credits} cr${course.prereqs.length ? ` · needs ${course.prereqs.join(", ")}` : ""}</div>
+      ${quartersHtml(course)}
     `;
 
     el.appendChild(checkbox);

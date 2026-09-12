@@ -219,6 +219,35 @@ svg#edges {
   margin-top: 3px;
 }
 
+.quarters {
+  display: flex;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.quarter {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--text-dim);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+
+.quarter.active {
+  color: #0f1115;
+  background: var(--good);
+  border-color: var(--good);
+}
+
+.quarters.no-data {
+  font-size: 9.5px;
+  color: #d98a3d;
+  margin-top: 5px;
+  font-style: italic;
+}
+
 .node.checked {
   border-color: var(--good);
 }
