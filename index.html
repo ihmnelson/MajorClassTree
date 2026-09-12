@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class Tree</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Class Tree <span id="major-label"></span></h1>
+    <div class="controls">
+      <select id="major-select"></select>
+      <div id="track-buttons"></div>
+    </div>
+    <div class="progress">
+      <div id="progress-text">0 / 0 credits checked</div>
+      <div class="progress-bar"><div id="progress-fill"></div></div>
+    </div>
+  </header>
+
+  <div class="legend" id="legend"></div>
+
+  <div id="tree-wrap">
+    <div id="tree">
+      <svg id="edges"></svg>
+    </div>
+  </div>
+
+  <footer id="footer"></footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
