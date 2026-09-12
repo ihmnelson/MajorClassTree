@@ -16,6 +16,9 @@
     selectionClear: document.getElementById("selection-clear"),
     legendToggle: document.getElementById("legend-toggle"),
     legendPanel: document.getElementById("legend-panel"),
+    courseModalBackdrop: document.getElementById("course-modal-backdrop"),
+    courseModalBody: document.getElementById("course-modal-body"),
+    courseModalClose: document.getElementById("course-modal-close"),
   };
 
   let currentData = null;
@@ -387,11 +390,36 @@
     return `<div class="quarters"${title}>${pills}</div>`;
   }
 
+  function openCourseModal(course) {
+    const desc = course.description || "No official description available for this course.";
+    els.courseModalBody.innerHTML = `
+      <h3>${course.code}</h3>
+      <div class="modal-title">${course.title} — ${course.credits} cr</div>
+      <div class="modal-desc">${desc}</div>
+      <div class="modal-source">UW Bothell official course catalog description.</div>
+    `;
+    els.courseModalBackdrop.hidden = false;
+  }
+
+  function closeCourseModal() {
+    els.courseModalBackdrop.hidden = true;
+  }
+
   function buildNode(course, byCode, data) {
     const el = document.createElement("div");
     el.className = "node";
     el.dataset.code = course.code;
     el.style.borderLeftColor = data.categories[course.category]?.color || "#888";
+
+    const infoBtn = document.createElement("button");
+    infoBtn.className = "info-btn";
+    infoBtn.type = "button";
+    infoBtn.textContent = "?";
+    infoBtn.title = "UWB course description";
+    infoBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openCourseModal(course);
+    });
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
@@ -413,10 +441,11 @@
       ${quartersHtml(course)}
     `;
 
+    el.appendChild(infoBtn);
     el.appendChild(checkbox);
     el.appendChild(info);
     el.addEventListener("click", (e) => {
-      if (e.target === checkbox) return;
+      if (e.target === checkbox || e.target === infoBtn) return;
       selectCourse(course.code);
     });
 
@@ -464,6 +493,14 @@
         selectedCode = null;
         updateVisualState();
       }
+    });
+
+    els.courseModalClose.addEventListener("click", closeCourseModal);
+    els.courseModalBackdrop.addEventListener("click", (e) => {
+      if (e.target === els.courseModalBackdrop) closeCourseModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !els.courseModalBackdrop.hidden) closeCourseModal();
     });
 
     const res = await fetch("data/majors.json");
