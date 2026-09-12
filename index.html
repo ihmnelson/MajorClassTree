@@ -19,7 +19,10 @@
     </div>
   </header>
 
-  <div class="legend" id="legend"></div>
+  <div id="selection-bar" hidden>
+    <span id="selection-text"></span>
+    <button id="selection-clear">✕ Clear</button>
+  </div>
 
   <div id="tree-wrap">
     <div id="tree">
@@ -28,6 +31,11 @@
   </div>
 
   <footer id="footer"></footer>
+
+  <div id="legend-widget">
+    <button id="legend-toggle" aria-expanded="false" aria-label="Show legend">?</button>
+    <div id="legend-panel" hidden></div>
+  </div>
 
   <script src="app.js"></script>
 </body>

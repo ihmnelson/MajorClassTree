@@ -3,18 +3,25 @@
     majorSelect: document.getElementById("major-select"),
     majorLabel: document.getElementById("major-label"),
     trackButtons: document.getElementById("track-buttons"),
-    legend: document.getElementById("legend"),
     tree: document.getElementById("tree"),
     treeWrap: document.getElementById("tree-wrap"),
     edges: document.getElementById("edges"),
     progressText: document.getElementById("progress-text"),
     progressFill: document.getElementById("progress-fill"),
     footer: document.getElementById("footer"),
+    selectionBar: document.getElementById("selection-bar"),
+    selectionText: document.getElementById("selection-text"),
+    selectionClear: document.getElementById("selection-clear"),
+    legendToggle: document.getElementById("legend-toggle"),
+    legendPanel: document.getElementById("legend-panel"),
   };
 
   let currentData = null;
+  let currentByCode = new Map();
+  let dependentsMap = new Map();
   let checked = new Set();
   let activeTrack = null; // track id or null for "all"
+  let selectedCode = null; // course code focused via click, or null
 
   function storageKey(majorId) {
     return `classtree:${majorId}:checked`;
@@ -77,14 +84,34 @@
     return seen;
   }
 
+  function buildDependentsMap(courses) {
+    const map = new Map(courses.map((c) => [c.code, []]));
+    for (const c of courses) {
+      for (const p of c.prereqs) {
+        if (map.has(p)) map.get(p).push(c.code);
+      }
+    }
+    return map;
+  }
+
   function renderLegend(data) {
-    els.legend.innerHTML = "";
-    for (const [key, cat] of Object.entries(data.categories)) {
+    els.legendPanel.innerHTML = "";
+    const hint = document.createElement("div");
+    hint.className = "legend-hint";
+    hint.textContent = "Click any course to see its prerequisites and what it unlocks.";
+    els.legendPanel.appendChild(hint);
+    for (const cat of Object.values(data.categories)) {
       const item = document.createElement("div");
       item.className = "legend-item";
       item.innerHTML = `<span class="legend-swatch" style="background:${cat.color}"></span>${cat.label}`;
-      els.legend.appendChild(item);
+      els.legendPanel.appendChild(item);
     }
+  }
+
+  function setLegendOpen(open) {
+    els.legendPanel.hidden = !open;
+    els.legendToggle.setAttribute("aria-expanded", String(open));
+    els.legendToggle.textContent = open ? "✕" : "?";
   }
 
   function renderTrackButtons(data) {
@@ -107,34 +134,71 @@
 
   function setTrack(trackId) {
     activeTrack = trackId;
+    selectedCode = null;
     for (const btn of els.trackButtons.querySelectorAll(".track-btn")) {
       const isAll = !btn.dataset.trackId;
       btn.classList.toggle("active", isAll ? trackId === null : btn.dataset.trackId === trackId);
     }
-    applyTrackHighlight();
+    updateVisualState();
   }
 
-  function applyTrackHighlight() {
+  function selectCourse(code) {
+    selectedCode = selectedCode === code ? null : code;
+    if (selectedCode) {
+      activeTrack = null;
+      for (const btn of els.trackButtons.querySelectorAll(".track-btn")) {
+        btn.classList.toggle("active", !btn.dataset.trackId);
+      }
+    }
+    updateVisualState();
+  }
+
+  // Selection (click) takes priority over the track filter; only one drives
+  // node dim/highlight + edge lines at a time. No edges are drawn unless a
+  // course is selected.
+  function updateVisualState() {
     if (!currentData) return;
-    const byCode = new Map(currentData.courses.map((c) => [c.code, c]));
-    let relevant = null;
-    if (activeTrack) {
-      relevant = new Set();
+    const byCode = currentByCode;
+    const nodes = els.tree.querySelectorAll(".node");
+    for (const n of nodes) n.classList.remove("dimmed", "highlight", "selected", "rel-prereq", "rel-dependent");
+
+    if (selectedCode && byCode.has(selectedCode)) {
+      const course = byCode.get(selectedCode);
+      const prereqs = course.prereqs.filter((p) => byCode.has(p));
+      const deps = dependentsMap.get(selectedCode) || [];
+      const prereqSet = new Set(prereqs);
+      const depSet = new Set(deps);
+      for (const n of nodes) {
+        const code = n.dataset.code;
+        if (code === selectedCode) n.classList.add("selected");
+        else if (prereqSet.has(code)) n.classList.add("rel-prereq");
+        else if (depSet.has(code)) n.classList.add("rel-dependent");
+        else n.classList.add("dimmed");
+      }
+      const edgePairs = [...prereqs.map((p) => [p, selectedCode]), ...deps.map((d) => [selectedCode, d])];
+      drawEdgeList(edgePairs);
+      els.selectionBar.hidden = false;
+      const reqText = prereqs.length ? prereqs.join(", ") : "none";
+      const unlockText = deps.length ? deps.join(", ") : "nothing yet";
+      els.selectionText.innerHTML = `<strong>${course.code}</strong> — needs: ${reqText} &nbsp;·&nbsp; unlocks: ${unlockText}`;
+    } else if (activeTrack) {
+      const relevant = new Set();
       for (const c of currentData.courses) {
         if ((c.tracks || []).includes(activeTrack)) {
           relevant.add(c.code);
           for (const a of ancestorsOf(c.code, byCode)) relevant.add(a);
         }
       }
-    }
-    for (const node of els.tree.querySelectorAll(".node")) {
-      const code = node.dataset.code;
-      if (!relevant) {
-        node.classList.remove("dimmed", "highlight");
-      } else {
-        node.classList.toggle("dimmed", !relevant.has(code));
-        node.classList.toggle("highlight", relevant.has(code) && (byCode.get(code).tracks || []).includes(activeTrack));
+      for (const n of nodes) {
+        const code = n.dataset.code;
+        n.classList.toggle("dimmed", !relevant.has(code));
+        n.classList.toggle("highlight", relevant.has(code) && (byCode.get(code).tracks || []).includes(activeTrack));
       }
+      drawEdgeList([]);
+      els.selectionBar.hidden = true;
+    } else {
+      drawEdgeList([]);
+      els.selectionBar.hidden = true;
     }
   }
 
@@ -155,9 +219,12 @@
     els.progressFill.style.width = total ? `${(done / total) * 100}%` : "0%";
   }
 
-  function drawEdges(byCode) {
+  // edgePairs: [[fromCode, toCode], ...] — draws only these, not the full graph.
+  function drawEdgeList(edgePairs) {
     const svg = els.edges;
     svg.innerHTML = "";
+    if (!edgePairs.length) return;
+
     const treeRect = els.tree.getBoundingClientRect();
     svg.setAttribute("width", els.tree.scrollWidth);
     svg.setAttribute("height", els.tree.scrollHeight);
@@ -168,32 +235,26 @@
     }
 
     const ns = "http://www.w3.org/2000/svg";
-    for (const course of currentData.courses) {
-      const targetEl = nodeEls.get(course.code);
-      if (!targetEl) continue;
+    for (const [fromCode, toCode] of edgePairs) {
+      const sourceEl = nodeEls.get(fromCode);
+      const targetEl = nodeEls.get(toCode);
+      if (!sourceEl || !targetEl) continue;
+
+      const sourceRect = sourceEl.getBoundingClientRect();
       const targetRect = targetEl.getBoundingClientRect();
+      const sx = sourceRect.right - treeRect.left;
+      const sy = sourceRect.top - treeRect.top + sourceRect.height / 2;
       const tx = targetRect.left - treeRect.left;
       const ty = targetRect.top - treeRect.top + targetRect.height / 2;
 
-      for (const p of course.prereqs) {
-        const sourceEl = nodeEls.get(p);
-        if (!sourceEl) continue;
-        const sourceRect = sourceEl.getBoundingClientRect();
-        const sx = sourceRect.right - treeRect.left;
-        const sy = sourceRect.top - treeRect.top + sourceRect.height / 2;
-
-        const dx = Math.max(40, (tx - sx) / 2);
-        const path = document.createElementNS(ns, "path");
-        path.setAttribute(
-          "d",
-          `M ${sx} ${sy} C ${sx + dx} ${sy}, ${tx - dx} ${ty}, ${tx} ${ty}`
-        );
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke", "currentColor");
-        path.setAttribute("stroke-opacity", "0.25");
-        path.setAttribute("stroke-width", "1.5");
-        svg.appendChild(path);
-      }
+      const dx = Math.max(40, (tx - sx) / 2);
+      const path = document.createElementNS(ns, "path");
+      path.setAttribute("d", `M ${sx} ${sy} C ${sx + dx} ${sy}, ${tx - dx} ${ty}, ${tx} ${ty}`);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "var(--accent)");
+      path.setAttribute("stroke-opacity", "0.55");
+      path.setAttribute("stroke-width", "2");
+      svg.appendChild(path);
     }
   }
 
@@ -201,12 +262,15 @@
     currentData = data;
     checked = loadChecked(data.id);
     activeTrack = null;
+    selectedCode = null;
 
     els.majorLabel.textContent = `— ${data.school}, ${data.major}`;
     renderLegend(data);
     renderTrackButtons(data);
 
     const byCode = new Map(data.courses.map((c) => [c.code, c]));
+    currentByCode = byCode;
+    dependentsMap = buildDependentsMap(data.courses);
     const levels = computeLevels(data.courses);
     const maxLevel = Math.max(0, ...levels.values());
     const lanes = data.lanes && data.lanes.length ? data.lanes : [{ id: "major", label: "Courses" }];
@@ -262,8 +326,7 @@
     }
 
     updateProgress();
-    requestAnimationFrame(() => drawEdges(byCode));
-    window.addEventListener("resize", () => requestAnimationFrame(() => drawEdges(byCode)), { once: false });
+    updateVisualState();
 
     const offeredNote = data.offeredMeta
       ? ` Quarter-offered badges: ${data.offeredMeta.mathSource} ${data.offeredMeta.eeSource} ${data.offeredMeta.note}`
@@ -317,8 +380,7 @@
     el.appendChild(info);
     el.addEventListener("click", (e) => {
       if (e.target === checkbox) return;
-      checkbox.checked = !checkbox.checked;
-      checkbox.dispatchEvent(new Event("change"));
+      selectCourse(course.code);
     });
 
     return el;
@@ -341,6 +403,25 @@
   }
 
   async function init() {
+    window.addEventListener("resize", () => requestAnimationFrame(updateVisualState));
+
+    els.selectionClear.addEventListener("click", () => {
+      selectedCode = null;
+      updateVisualState();
+    });
+
+    els.legendToggle.addEventListener("click", () => setLegendOpen(els.legendPanel.hidden));
+    document.addEventListener("click", (e) => {
+      if (!els.legendPanel.hidden && !e.target.closest("#legend-widget")) setLegendOpen(false);
+    });
+
+    els.treeWrap.addEventListener("click", (e) => {
+      if (selectedCode && !e.target.closest(".node")) {
+        selectedCode = null;
+        updateVisualState();
+      }
+    });
+
     const res = await fetch("data/majors.json");
     const majors = await res.json();
     for (const m of majors) {

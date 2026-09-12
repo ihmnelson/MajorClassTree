@@ -2,7 +2,7 @@
   "id": "uwb-ee",
   "school": "UW Bothell",
   "major": "Electrical Engineering",
-  "source": "Official UWB EE Prerequisite Flowchart (rev. 10/4/2024) and UW course catalog",
+  "source": "Official UWB EE Prerequisite Flowchart (rev. 10/4/2024), UW course catalog, and uwb.edu/stem EE curriculum page (required/elective course lists cross-checked against it)",
   "sourceNote": "Prerequisites may change — verify against the official flowchart / your advisor before planning registration.",
   "offeredMeta": {
     "mathSource": "Official UWB EE flowchart quarter key (AY24/25) for math/science/support courses.",
@@ -48,6 +48,8 @@
 
     { "code": "CSS 132", "title": "Programming I (C++ or Java)", "credits": 5, "category": "support", "lane": "programming", "prereqs": [], "offered": ["Au", "Wi", "Sp", "Su"] },
     { "code": "CSS 133", "title": "Programming II (C++ or Java)", "credits": 5, "category": "support", "lane": "programming", "prereqs": ["CSS 132"], "offered": ["Au", "Wi", "Sp", "Su"] },
+    { "code": "CSS 342", "title": "Data Structures, Algorithms, and Discrete Mathematics I", "credits": 5, "category": "support", "lane": "programming", "prereqs": ["CSS 133", "STMATH 125"], "offered": [], "offeredNote": "Not sampled (only B EE quarterly schedules were sampled) — check MyPlan/Time Schedule." },
+    { "code": "CSS 427", "title": "Introduction to Embedded Systems", "credits": 5, "category": "elective-ee", "lane": "programming", "prereqs": ["CSS 342", "B EE 425"], "offered": [], "offeredNote": "Not sampled (only B EE quarterly schedules were sampled) — check MyPlan/Time Schedule." },
 
     { "code": "BWRIT 134", "title": "Composition", "credits": 5, "category": "major-prereq", "lane": "writing", "prereqs": [], "offered": ["Au", "Wi", "Sp"] },
     { "code": "BWRIT 135", "title": "Composition, Research, and Reasoning", "credits": 5, "category": "support", "lane": "writing", "prereqs": ["BWRIT 134"], "offered": ["Au", "Wi", "Sp", "Su"] },
@@ -83,12 +85,8 @@
     { "code": "B EE 454", "title": "Introduction to RF and Microwave Engineering", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 331", "B EE 361"], "offered": ["Wi"] },
     { "code": "B EE 455", "title": "Introduction to Electrical Machines and Drives", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 200", "B EE 233"], "tracks": ["power"], "offered": [] },
     { "code": "B EE 457", "title": "Electrical/Power Electronic Systems in Renewable Energy", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 331"], "tracks": ["power"], "offered": ["Sp"] },
-    { "code": "B EE 461", "title": "Introduction to Digital Speech and Audio Processing", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 341"], "offered": [] },
-    { "code": "B EE 465", "title": "Introduction to Electromagnetic Compatibility and Signal Integrity", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 233", "B EE 235"], "offered": ["Au"] },
-    { "code": "B EE 475", "title": "Introduction to VLSI System Design", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 271", "B EE 331"], "offered": ["Au"] },
     { "code": "B EE 477", "title": "Power System Fundamentals", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 200", "B EE 233"], "tracks": ["power"], "offered": ["Su"] },
     { "code": "B EE 478", "title": "Power System Analysis", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 477"], "tracks": ["power"], "offered": ["Au"] },
-    { "code": "B EE 479", "title": "Energy Technologies and Power Systems", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 233"], "tracks": ["power"], "offered": [] },
     { "code": "B EE 482", "title": "Semiconductor Devices", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 332"], "offered": [] },
     { "code": "B EE 484", "title": "Sensors and Sensor Systems", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 235", "B EE 331"], "offered": ["Sp"] },
     { "code": "B EE 486", "title": "Fundamentals of Integrated Circuit Technology", "credits": 5, "category": "elective-ee", "lane": "major", "prereqs": ["B EE 331"], "offered": [] },

@@ -7,6 +7,7 @@
   --text-dim: #9aa1ad;
   --accent: #4f8ef7;
   --good: #3dd68c;
+  --downstream: #e0a53d;
   color-scheme: dark;
 }
 
@@ -103,21 +104,58 @@ button.track-btn.active {
   transition: width .25s ease;
 }
 
-.legend {
+#legend-widget {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 50;
   display: flex;
-  gap: 14px;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--border);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+#legend-toggle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
   background: var(--panel);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+#legend-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#legend-panel {
+  width: 230px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   font-size: 12px;
   color: var(--text-dim);
-  flex-wrap: wrap;
+}
+
+#legend-panel .legend-hint {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.4;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 2px 0;
 }
 
 .legend-swatch {
@@ -125,6 +163,44 @@ button.track-btn.active {
   height: 10px;
   border-radius: 3px;
   display: inline-block;
+  flex-shrink: 0;
+}
+
+#selection-bar {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+  border-bottom: 1px solid var(--border);
+  padding: 9px 20px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  gap: 12px;
+}
+
+#selection-bar:not([hidden]) {
+  display: flex;
+}
+
+#selection-text strong {
+  color: var(--text);
+}
+
+#selection-clear {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#selection-clear:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 #tree-wrap {
@@ -216,6 +292,19 @@ svg#edges {
 
 .node.highlight {
   box-shadow: 0 0 0 2px var(--accent);
+}
+
+.node.selected {
+  box-shadow: 0 0 0 2px var(--text);
+  border-color: var(--text);
+}
+
+.node.rel-prereq {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.node.rel-dependent {
+  box-shadow: 0 0 0 2px var(--downstream);
 }
 
 .node input[type="checkbox"] {
