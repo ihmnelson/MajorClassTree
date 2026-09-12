@@ -19,34 +19,56 @@
     courseModalBackdrop: document.getElementById("course-modal-backdrop"),
     courseModalBody: document.getElementById("course-modal-body"),
     courseModalClose: document.getElementById("course-modal-close"),
+    cartToggle: document.getElementById("cart-toggle"),
+    cartCount: document.getElementById("cart-count"),
+    cartPanel: document.getElementById("cart-panel"),
+    cartItems: document.getElementById("cart-items"),
+    cartClear: document.getElementById("cart-clear"),
   };
 
   let currentData = null;
   let currentByCode = new Map();
   let dependentsMap = new Map();
   let checked = new Set();
+  let cart = new Set(); // courses added to the "plan a quarter" cart
   let activeTrack = null; // track id or null for "all"
   let selectedCode = null; // course code focused via click, or null
 
-  function storageKey(majorId) {
-    return `classtree:${majorId}:checked`;
+  function storageKey(majorId, kind) {
+    return `classtree:${majorId}:${kind}`;
   }
 
-  function loadChecked(majorId) {
+  function loadCodeSet(majorId, kind) {
     try {
-      const raw = localStorage.getItem(storageKey(majorId));
+      const raw = localStorage.getItem(storageKey(majorId, kind));
       return new Set(raw ? JSON.parse(raw) : []);
     } catch {
       return new Set();
     }
   }
 
-  function saveChecked(majorId) {
+  function saveCodeSet(majorId, kind, set) {
     try {
-      localStorage.setItem(storageKey(majorId), JSON.stringify([...checked]));
+      localStorage.setItem(storageKey(majorId, kind), JSON.stringify([...set]));
     } catch {
       /* storage unavailable (private browsing etc) - state just won't persist */
     }
+  }
+
+  function loadChecked(majorId) {
+    return loadCodeSet(majorId, "checked");
+  }
+
+  function saveChecked(majorId) {
+    saveCodeSet(majorId, "checked", checked);
+  }
+
+  function loadCart(majorId) {
+    return loadCodeSet(majorId, "cart");
+  }
+
+  function saveCart(majorId) {
+    saveCodeSet(majorId, "cart", cart);
   }
 
   function computeLevels(courses) {
@@ -290,6 +312,7 @@
   function render(data) {
     currentData = data;
     checked = loadChecked(data.id);
+    cart = loadCart(data.id);
     activeTrack = null;
     selectedCode = null;
 
@@ -357,6 +380,7 @@
 
     updateProgress();
     updateVisualState();
+    renderCart();
 
     const offeredNote = data.offeredMeta
       ? ` Quarter-offered badges: ${data.offeredMeta.mathSource} ${data.offeredMeta.eeSource} ${data.offeredMeta.note}`
@@ -405,6 +429,94 @@
     els.courseModalBackdrop.hidden = true;
   }
 
+  function setCourseInCart(code, inCart) {
+    if (inCart) cart.add(code);
+    else cart.delete(code);
+    if (currentData) saveCart(currentData.id);
+
+    const node = els.tree.querySelector(`.node[data-code="${CSS.escape(code)}"]`);
+    if (node) {
+      node.classList.toggle("in-cart", inCart);
+      const btn = node.querySelector(".cart-btn");
+      if (btn) {
+        btn.classList.toggle("in-cart", inCart);
+        btn.textContent = inCart ? "✓ In cart" : "+ Add to cart";
+      }
+    }
+    renderCart();
+  }
+
+  function renderCart() {
+    els.cartCount.textContent = String(cart.size);
+    if (!currentData) {
+      els.cartItems.innerHTML = "";
+      return;
+    }
+    const byCode = currentByCode;
+    const codes = [...cart].filter((c) => byCode.has(c)).sort((a, b) => a.localeCompare(b));
+
+    if (!codes.length) {
+      els.cartItems.innerHTML = `<div class="cart-empty">No courses added yet. Click "+ Add to cart" on any course tile.</div>`;
+      return;
+    }
+
+    // Pairwise: if one course is a (transitive) prerequisite of another, they
+    // can't be taken the same quarter. Flag the dependent side only.
+    const conflictsFor = new Map(codes.map((c) => [c, []]));
+    for (let i = 0; i < codes.length; i++) {
+      for (let j = i + 1; j < codes.length; j++) {
+        const a = codes[i];
+        const b = codes[j];
+        if (ancestorsOf(a, byCode).has(b)) conflictsFor.get(a).push(b);
+        else if (ancestorsOf(b, byCode).has(a)) conflictsFor.get(b).push(a);
+      }
+    }
+
+    let totalCredits = 0;
+    let anyConflict = false;
+    const rows = codes.map((code) => {
+      const course = byCode.get(code);
+      totalCredits += course.credits;
+      const conflicts = conflictsFor.get(code);
+      const missing = course.prereqs.filter((p) => byCode.has(p) && !checked.has(p) && !cart.has(p));
+
+      let statusHtml;
+      if (conflicts.length) {
+        anyConflict = true;
+        statusHtml = `<div class="cart-item-status warn">⚠ Requires ${conflicts.join(", ")} first — can't be taken the same quarter as this.</div>`;
+      } else if (missing.length) {
+        statusHtml = `<div class="cart-item-status warn">⚠ Prerequisite not yet checked off: ${missing.join(", ")}</div>`;
+      } else {
+        statusHtml = `<div class="cart-item-status ok">✓ No prerequisite conflicts in this cart</div>`;
+      }
+
+      return `
+        <div class="cart-item">
+          <div class="cart-item-row">
+            <span class="cart-item-title">${code} — ${course.title}</span>
+            <button class="cart-item-remove" data-code="${code}" aria-label="Remove ${code} from cart">✕</button>
+          </div>
+          ${statusHtml}
+        </div>
+      `;
+    });
+
+    const summary = anyConflict
+      ? `${totalCredits} credits total — some of these can't be taken the same quarter (see ⚠ above).`
+      : `${totalCredits} credits total — no prerequisite conflicts between these. (Doesn't check actual class meeting times.)`;
+
+    els.cartItems.innerHTML = rows.join("") + `<div class="cart-summary">${summary}</div>`;
+
+    for (const btn of els.cartItems.querySelectorAll(".cart-item-remove")) {
+      btn.addEventListener("click", () => setCourseInCart(btn.dataset.code, false));
+    }
+  }
+
+  function setCartOpen(open) {
+    els.cartPanel.hidden = !open;
+    els.cartToggle.setAttribute("aria-expanded", String(open));
+  }
+
   function buildNode(course, byCode, data) {
     const el = document.createElement("div");
     el.className = "node";
@@ -441,11 +553,25 @@
       ${quartersHtml(course)}
     `;
 
+    const inCartNow = cart.has(course.code);
+    const cartBtn = document.createElement("button");
+    cartBtn.type = "button";
+    cartBtn.className = "cart-btn" + (inCartNow ? " in-cart" : "");
+    cartBtn.textContent = inCartNow ? "✓ In cart" : "+ Add to cart";
+    cartBtn.title = "Add to the quarter-planning cart";
+    cartBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setCourseInCart(course.code, !cart.has(course.code));
+    });
+    info.appendChild(cartBtn);
+
+    if (inCartNow) el.classList.add("in-cart");
+
     el.appendChild(infoBtn);
     el.appendChild(checkbox);
     el.appendChild(info);
     el.addEventListener("click", (e) => {
-      if (e.target === checkbox || e.target === infoBtn) return;
+      if (e.target === checkbox || e.target === infoBtn || e.target === cartBtn) return;
       selectCourse(course.code);
     });
 
@@ -501,6 +627,28 @@
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !els.courseModalBackdrop.hidden) closeCourseModal();
+    });
+
+    els.cartToggle.addEventListener("click", () => setCartOpen(els.cartPanel.hidden));
+    els.cartClear.addEventListener("click", () => {
+      const codes = [...cart];
+      cart.clear();
+      if (currentData) saveCart(currentData.id);
+      for (const code of codes) {
+        const node = els.tree.querySelector(`.node[data-code="${CSS.escape(code)}"]`);
+        if (node) {
+          node.classList.remove("in-cart");
+          const btn = node.querySelector(".cart-btn");
+          if (btn) {
+            btn.classList.remove("in-cart");
+            btn.textContent = "+ Add to cart";
+          }
+        }
+      }
+      renderCart();
+    });
+    document.addEventListener("click", (e) => {
+      if (!els.cartPanel.hidden && !e.target.closest("#cart-widget")) setCartOpen(false);
     });
 
     const res = await fetch("data/majors.json");

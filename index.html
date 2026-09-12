@@ -42,6 +42,23 @@
     <div id="legend-panel" hidden></div>
   </div>
 
+  <div id="cart-widget">
+    <button id="cart-toggle" aria-expanded="false" aria-label="Quarter planning cart">
+      🛒 <span id="cart-count">0</span>
+    </button>
+    <div id="cart-panel" hidden>
+      <div class="cart-panel-header">
+        <strong>Plan a quarter</strong>
+        <button id="cart-clear">Clear</button>
+      </div>
+      <div class="cart-hint">
+        Add courses here to check whether they can be taken the <em>same</em> quarter — based on prerequisite chains only.
+        This can't see actual class meeting times, so still double-check the real time schedule for conflicts.
+      </div>
+      <div id="cart-items"></div>
+    </div>
+  </div>
+
   <div id="course-modal-backdrop" hidden>
     <div id="course-modal" role="dialog" aria-modal="true">
       <button id="course-modal-close" aria-label="Close">✕</button>
