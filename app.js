@@ -3,6 +3,8 @@
     majorSelect: document.getElementById("major-select"),
     majorLabel: document.getElementById("major-label"),
     trackSelect: document.getElementById("track-select"),
+    trackInfoToggle: document.getElementById("track-info-toggle"),
+    trackInfoPanel: document.getElementById("track-info-panel"),
     tree: document.getElementById("tree"),
     treeWrap: document.getElementById("tree-wrap"),
     edges: document.getElementById("edges"),
@@ -141,6 +143,7 @@
     activeTrack = trackId;
     selectedCode = null;
     els.trackSelect.value = trackId || "";
+    updateTrackInfoButton();
     updateVisualState();
   }
 
@@ -149,8 +152,31 @@
     if (selectedCode) {
       activeTrack = null;
       els.trackSelect.value = "";
+      updateTrackInfoButton();
     }
     updateVisualState();
+  }
+
+  function trackInfoHtml(track) {
+    const careers = track.careers
+      ? `<div class="careers"><strong>Typical jobs / industries</strong>${track.careers}</div>`
+      : "";
+    return `<h3>${track.label}</h3><p>${track.description || ""}</p>${careers}`;
+  }
+
+  function setTrackInfoOpen(open) {
+    els.trackInfoPanel.hidden = !open;
+    els.trackInfoToggle.setAttribute("aria-expanded", String(open));
+  }
+
+  function updateTrackInfoButton() {
+    const track = activeTrack && currentData ? (currentData.tracks || []).find((t) => t.id === activeTrack) : null;
+    els.trackInfoToggle.hidden = !track;
+    if (track) {
+      els.trackInfoPanel.innerHTML = trackInfoHtml(track);
+    } else {
+      setTrackInfoOpen(false);
+    }
   }
 
   // Selection (click) takes priority over the track filter; only one drives
@@ -267,6 +293,7 @@
     els.majorLabel.textContent = `— ${data.school}, ${data.major}`;
     renderLegend(data);
     renderTrackSelect(data);
+    updateTrackInfoButton();
 
     const byCode = new Map(data.courses.map((c) => [c.code, c]));
     currentByCode = byCode;
@@ -416,6 +443,11 @@
     window.addEventListener("resize", () => requestAnimationFrame(updateVisualState));
 
     els.trackSelect.addEventListener("change", () => setTrack(els.trackSelect.value || null));
+
+    els.trackInfoToggle.addEventListener("click", () => setTrackInfoOpen(els.trackInfoPanel.hidden));
+    document.addEventListener("click", (e) => {
+      if (!els.trackInfoPanel.hidden && !e.target.closest(".track-control")) setTrackInfoOpen(false);
+    });
 
     els.selectionClear.addEventListener("click", () => {
       selectedCode = null;

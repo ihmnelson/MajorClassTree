@@ -74,6 +74,69 @@ select {
   cursor: pointer;
 }
 
+.track-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#track-info-toggle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text-dim);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#track-info-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#track-info-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: 320px;
+  max-width: calc(100vw - 40px);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+#track-info-panel h3 {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+#track-info-panel .careers {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+#track-info-panel .careers strong {
+  display: block;
+  color: var(--text);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+
 .progress {
   display: flex;
   flex-direction: column;
@@ -208,7 +271,7 @@ select {
   position: relative;
   display: grid;
   column-gap: 40px;
-  row-gap: 4px;
+  row-gap: 0;
   width: max-content;
 }
 
@@ -224,8 +287,6 @@ svg#edges {
   position: relative;
   background: color-mix(in srgb, var(--accent) 4%, transparent);
   border-bottom: 1px solid var(--border);
-  border-radius: 6px;
-  margin: -8px 0;
   padding: 8px 0;
 }
 

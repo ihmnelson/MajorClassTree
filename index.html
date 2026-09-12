@@ -12,7 +12,11 @@
     <h1>Class Tree <span id="major-label"></span></h1>
     <div class="controls">
       <select id="major-select"></select>
-      <select id="track-select"></select>
+      <div class="track-control">
+        <select id="track-select"></select>
+        <button id="track-info-toggle" hidden aria-expanded="false" aria-label="About this track">?</button>
+        <div id="track-info-panel" hidden></div>
+      </div>
     </div>
     <div class="progress">
       <div id="progress-text">0 / 0 credits checked</div>

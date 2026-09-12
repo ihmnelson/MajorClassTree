@@ -10,12 +10,42 @@
     "note": "Empty = not seen in any of those 5 quarters. Electives can rotate on 1-2 year cycles, so absence here isn't a guarantee it's cancelled — check the current Time Schedule before final planning."
   },
   "tracks": [
-    { "id": "power", "label": "Power Electronics" },
-    { "id": "devices", "label": "Semiconductor Devices & Microsystems" },
-    { "id": "rf", "label": "RF & Communications" },
-    { "id": "signal", "label": "Signal & Image Processing" },
-    { "id": "embedded", "label": "Embedded & Digital Systems" },
-    { "id": "biomed", "label": "Biomedical Instrumentation" }
+    {
+      "id": "power",
+      "label": "Power Electronics",
+      "description": "Power electronics covers converting, controlling, and conditioning electric power with solid-state devices — inverters, converters, and motor drives that move power between forms (AC/DC, high/low voltage) with minimal loss. It overlaps closely with power systems engineering, which deals with generating, transmitting, and distributing electricity across the grid, including integrating renewable sources like solar and wind.",
+      "careers": "Power electronics engineer, power systems/grid engineer, renewable energy engineer, EV powertrain engineer. Employers: utilities, EV/battery makers, renewable energy companies, industrial motor drive manufacturers, aerospace power systems."
+    },
+    {
+      "id": "devices",
+      "label": "Semiconductor Devices & Microsystems",
+      "description": "This area studies the physics and fabrication of semiconductor devices (transistors, diodes) and MEMS — tiny mechanical sensors and actuators built with chip-fabrication techniques. It underlies nearly every modern electronic device, from a phone's accelerometer to the transistors on a CPU.",
+      "careers": "Device/process engineer, IC design engineer, MEMS/sensor engineer, semiconductor fab process engineer. Employers: chipmakers, sensor manufacturers, consumer electronics companies, research labs."
+    },
+    {
+      "id": "rf",
+      "label": "RF & Communications",
+      "description": "RF (radio frequency) and communications engineering designs the circuits and systems that transmit and receive information wirelessly — antennas, amplifiers, and mixers, plus the modulation/coding schemes used in cellular, Wi-Fi, satellite, and radar systems.",
+      "careers": "RF engineer, wireless systems engineer, antenna design engineer, communications systems engineer. Employers: telecom companies, satellite/aerospace firms, defense contractors, chipmakers building wireless radios."
+    },
+    {
+      "id": "signal",
+      "label": "Signal & Image Processing",
+      "description": "Signal and image processing focuses on algorithms that analyze, filter, compress, and extract information from signals — audio, sensor data, or images/video — often implemented in real time on embedded hardware or GPUs.",
+      "careers": "DSP engineer, computer vision engineer, algorithms/ML engineer, audio engineer. Employers: consumer electronics, medical imaging, autonomous vehicles, camera/imaging tech, defense/radar."
+    },
+    {
+      "id": "embedded",
+      "label": "Embedded & Digital Systems",
+      "description": "Embedded and digital systems engineering designs the digital logic, microprocessors, and firmware that control everything from appliances to industrial machinery — using hardware description languages (HDLs) to design custom digital circuits (FPGAs/ASICs) and writing low-level software that runs directly on hardware.",
+      "careers": "Embedded systems engineer, firmware engineer, FPGA/ASIC design engineer, digital design engineer. Employers: consumer electronics, automotive, industrial automation, IoT device makers, chip design companies."
+    },
+    {
+      "id": "biomed",
+      "label": "Biomedical Instrumentation",
+      "description": "Biomedical instrumentation applies electrical engineering to medical devices — designing the sensors, signal-conditioning circuits, and systems used in equipment like ECG/EEG monitors, ultrasound machines, and implantable devices.",
+      "careers": "Biomedical/clinical engineer, medical device design engineer, R&D engineer at a medtech company, regulatory/quality engineer. Employers: medical device companies, hospital biomedical engineering departments, medtech startups."
+    }
   ],
   "lanes": [
     { "id": "math", "label": "Math" },
