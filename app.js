@@ -209,13 +209,19 @@
     const byCode = new Map(data.courses.map((c) => [c.code, c]));
     const levels = computeLevels(data.courses);
     const maxLevel = Math.max(0, ...levels.values());
+    const lanes = data.lanes && data.lanes.length ? data.lanes : [{ id: "major", label: "Courses" }];
+    const laneIndex = new Map(lanes.map((l, i) => [l.id, i]));
 
-    const columns = [];
-    for (let i = 0; i <= maxLevel; i++) columns.push([]);
-    for (const c of data.courses) columns[levels.get(c.code)].push(c);
+    const cellMap = new Map(); // "laneIdx:level" -> courses[]
+    for (const c of data.courses) {
+      const li = laneIndex.has(c.lane) ? laneIndex.get(c.lane) : lanes.length - 1;
+      const key = `${li}:${levels.get(c.code)}`;
+      if (!cellMap.has(key)) cellMap.set(key, []);
+      cellMap.get(key).push(c);
+    }
     const catOrder = Object.keys(data.categories);
-    for (const col of columns) {
-      col.sort((a, b) => {
+    for (const arr of cellMap.values()) {
+      arr.sort((a, b) => {
         const ca = catOrder.indexOf(a.category);
         const cb = catOrder.indexOf(b.category);
         if (ca !== cb) return ca - cb;
@@ -224,15 +230,35 @@
     }
 
     els.tree.innerHTML = "";
+    els.tree.style.gridTemplateColumns = `150px repeat(${maxLevel + 1}, 220px)`;
+    els.tree.style.gridTemplateRows = `repeat(${lanes.length}, auto)`;
+
+    // Paint order (back to front): lane bands, edge lines, course nodes.
+    lanes.forEach((lane, li) => {
+      const band = document.createElement("div");
+      band.className = "lane-band" + (li % 2 ? " alt" : "");
+      band.style.gridColumn = "1 / -1";
+      band.style.gridRow = `${li + 1}`;
+      const label = document.createElement("div");
+      label.className = "lane-label";
+      label.textContent = lane.label;
+      band.appendChild(label);
+      els.tree.appendChild(band);
+    });
+
     els.tree.appendChild(els.edges);
 
-    for (const col of columns) {
-      const colEl = document.createElement("div");
-      colEl.className = "level-col";
-      for (const course of col) {
-        colEl.appendChild(buildNode(course, byCode, data));
-      }
-      els.tree.appendChild(colEl);
+    for (let lvl = 0; lvl <= maxLevel; lvl++) {
+      lanes.forEach((lane, li) => {
+        const courses = cellMap.get(`${li}:${lvl}`);
+        if (!courses || !courses.length) return;
+        const cell = document.createElement("div");
+        cell.className = "level-cell";
+        cell.style.gridColumn = `${lvl + 2}`;
+        cell.style.gridRow = `${li + 1}`;
+        for (const course of courses) cell.appendChild(buildNode(course, byCode, data));
+        els.tree.appendChild(cell);
+      });
     }
 
     updateProgress();

@@ -136,9 +136,9 @@ button.track-btn.active {
 
 #tree {
   position: relative;
-  display: flex;
-  gap: 64px;
-  align-items: flex-start;
+  display: grid;
+  column-gap: 40px;
+  row-gap: 4px;
   width: max-content;
 }
 
@@ -150,11 +150,41 @@ svg#edges {
   overflow: visible;
 }
 
-.level-col {
+.lane-band {
+  position: relative;
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  border-bottom: 1px solid var(--border);
+  border-radius: 6px;
+  margin: -8px 0;
+  padding: 8px 0;
+}
+
+.lane-band.alt {
+  background: color-mix(in srgb, var(--text-dim) 6%, transparent);
+}
+
+.lane-label {
+  position: sticky;
+  left: 0;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  background: var(--bg);
+  padding: 4px 10px;
+  border-radius: 5px;
+  margin-left: 4px;
+}
+
+.level-cell {
   display: flex;
   flex-direction: column;
   gap: 14px;
   width: 220px;
+  padding: 8px 0;
+  position: relative;
 }
 
 .node {
